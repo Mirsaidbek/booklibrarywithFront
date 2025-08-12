@@ -1,0 +1,73 @@
+package com.bookstorage.security;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+
+@Component
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+
+    @Autowired
+    private JwtUtil jwtUtil;
+    
+    @Autowired
+    private UserDetailsService userDetailsService;
+    
+    public JwtAuthenticationFilter() {
+        // Default constructor for Spring
+    }
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, 
+                                  HttpServletResponse response, 
+                                  FilterChain filterChain) throws ServletException, IOException {
+        
+        final String authorizationHeader = request.getHeader("Authorization");
+        final String requestURI = request.getRequestURI();
+
+        String username = null;
+        String jwt = null;
+
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            jwt = authorizationHeader.substring(7);
+            try {
+                username = jwtUtil.extractUsername(jwt);
+                logger.debug("JWT token extracted for user: {} on URI: {}", username, requestURI);
+            } catch (Exception e) {
+                logger.error("Error extracting username from JWT on URI: {} - {}", requestURI, e.getMessage());
+            }
+        } else {
+            logger.debug("No Authorization header found for URI: {}", requestURI);
+        }
+
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+
+            if (jwtUtil.validateToken(jwt, userDetails)) {
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+                logger.debug("Authentication set for user: {} on URI: {}", username, requestURI);
+            } else {
+                logger.warn("Invalid JWT token for user: {} on URI: {}", username, requestURI);
+            }
+        }
+        filterChain.doFilter(request, response);
+    }
+}
