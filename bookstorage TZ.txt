@@ -1,0 +1,227 @@
+📚 Online Library – Technical Specification (Updated with Modal Feature)
+1. Project Overview
+The Online Library is a full-stack web application that allows users to register, manage their personal library of books, and read them online.
+It includes authentication, profile management, and role-based access control for Users and Admins.
+The application will be multi-page, responsive, and support both desktop and mobile views.
+
+2. Tech Stack
+Backend: Java 21, Spring Boot, Spring Security, Spring Data JPA, JWT
+
+Frontend: React.js + TailwindCSS or Material UI
+
+Database: PostgreSQL
+
+File Storage: Local or AWS S3 (covers + book files)
+
+API Type: RESTful JSON API
+
+Documentation: Swagger UI
+
+Version Control: Git + GitHub
+
+3. User Roles & Permissions
+Role: USER
+Add, edit, delete own books.
+
+View and search own books.
+
+Open books in reading mode.
+
+Edit profile (photo, full name, Gmail/username if available, password).
+
+Only sees the Edit button on their own books.
+
+Role: ADMIN
+Cannot add/edit/delete books.
+
+Manage users (view, ban/unban, add new).
+
+See all users and their books.
+
+View statistics (optional future feature).
+
+4. Authentication & Security
+JWT-based authentication with Spring Security.
+
+Password hashing with BCrypt.
+
+Unique Gmail for registration (used as username).
+
+Default role: USER (Admins created by another admin).
+
+Access control based on role.
+
+5. Book Management
+Book Entity Fields:
+
+id
+
+title (required)
+
+author (optional)
+
+description (optional)
+
+imageUrl (optional, default assigned)
+
+contentUrl (file for reading)
+
+owner (User reference)
+
+Book Features:
+
+Upload cover image (optional).
+
+Upload book file (optional).
+
+Default image assigned if no cover uploaded.
+
+Pagination & search by title or author.
+
+6. Profile Management
+User Entity Fields:
+
+id
+
+fullName
+
+username (Gmail, unique)
+
+password
+
+profilePhoto (optional, default assigned)
+
+role
+
+status (active/banned)
+
+Profile Features:
+
+Editable profile fields except role & ID.
+
+Gmail change allowed if unique.
+
+Default image if none uploaded.
+
+7. Modal Feature for Book Interaction
+When a user clicks a book in the list/grid:
+
+Modal Window (Overlay UI):
+
+Appears centered, dims the background.
+
+Contains:
+
+Book cover (small preview).
+
+Title.
+
+Author.
+
+Short description.
+
+Buttons:
+
+Read/Open → goes to reading mode (full page or inline viewer).
+
+Edit (only if user is owner) → goes to edit form.
+
+Close options:
+
+Click “X” icon.
+
+Click outside modal.
+
+Press Esc.
+
+8. Admin Dashboard
+User List:
+
+Columns: ID, Full Name, Gmail, Role, Status, Books Count.
+
+User Details:
+
+Profile info.
+
+List of user’s books.
+
+Actions:
+
+Ban/Unban.
+
+Add user.
+
+9. Frontend Pages
+Login Page
+
+Registration Page
+
+Home (Book List + Search + Modal on click)
+
+Add/Edit Book Page
+
+Book Reading Page
+
+Profile Page
+
+Admin Dashboard
+
+User list
+
+User details
+
+Ban/Unban
+
+Add user
+
+10. API Endpoints (Draft)
+Auth
+
+POST /api/auth/register
+
+POST /api/auth/login
+
+Profile
+
+GET /api/users/me
+
+PUT /api/users/me
+
+PUT /api/users/me/password
+
+PUT /api/users/me/photo
+
+Books
+
+GET /api/books (user’s books with search & pagination)
+
+POST /api/books
+
+GET /api/books/{id}
+
+PUT /api/books/{id}
+
+DELETE /api/books/{id}
+
+Admin
+
+GET /api/admin/users
+
+GET /api/admin/users/{id}
+
+POST /api/admin/users
+
+PATCH /api/admin/users/{id}/status
+
+GET /api/admin/users/{id}/books
+
+11. Non-Functional Requirements
+Responsive: works on desktop, tablet, and mobile.
+
+Performance: supports 50+ concurrent active users.
+
+Security: JWT for all protected endpoints.
+
+Scalability: layered architecture for backend.
+
+UI/UX: modern, minimal, intuitive design.
